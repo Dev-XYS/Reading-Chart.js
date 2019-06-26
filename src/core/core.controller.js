@@ -81,6 +81,8 @@ function mergeScaleConfig(/* config objects ... */) {
  * a deep copy of the result, thus doesn't alter inputs.
  */
 function mergeConfig(/* config objects ... */) {
+	// 此处遇到了[].slice.call(arguments)，一个经典的将arguments转化为Array的方法。
+	// 现今可以替换为Array.from(arguments)。
 	return helpers.merge({}, [].slice.call(arguments), {
 		merger: function(key, target, source, options) {
 			var tval = target[key] || {};
@@ -108,6 +110,8 @@ function initConfig(config) {
 	data.datasets = data.datasets || [];
 	data.labels = data.labels || [];
 
+	// mergeConfig的大致作用是合并用户提供的参数和默认参数。
+	// （因为指定各选项时可以只提供一部分，其余的取默认值。）
 	config.options = mergeConfig(
 		defaults.global,
 		defaults[config.type],
@@ -146,11 +150,14 @@ var Chart = function(item, config) {
 	return this;
 };
 
+// 向Chart类中加入几个成员函数。
 helpers.extend(Chart.prototype, /** @lends Chart */ {
 	/**
 	 * @private
 	 */
+	// 本函数是Chart.prototype的属性，以构造函数调用Chart时会调用本函数。
 	construct: function(item, config) {
+		// 以正常方式调用时，本函数中this指向构造函数生成的Object（即一个Chart实例）。
 		var me = this;
 
 		config = initConfig(config);
@@ -204,16 +211,21 @@ helpers.extend(Chart.prototype, /** @lends Chart */ {
 		}
 
 		me.initialize();
+		// 动画的开始在update函数中。
 		me.update();
 	},
 
 	/**
 	 * @private
 	 */
+	// 本函数是主要的用于初始化一个Chart实例的函数。大部分Chart的属性都是在此处初始化的。
 	initialize: function() {
 		var me = this;
 
 		// Before init plugin notification
+		// Chart实例中有一个boxes属性，对画面的绘制起到至关重要的作用。
+		// 在Chart.js中，图表的图例和标题是用plugin的方式实现的，因此plugins.notify是必须的，
+		// 否则无法显示图例和标题。
 		plugins.notify(me, 'beforeInit');
 
 		helpers.retinaScale(me, me.options.devicePixelRatio);
@@ -227,6 +239,7 @@ helpers.extend(Chart.prototype, /** @lends Chart */ {
 
 		// Make sure scales have IDs and are built before we build any controllers.
 		me.ensureScalesHaveIDs();
+		// buildOrUPdateScales函数负责的是坐标轴的初始化。
 		me.buildOrUpdateScales();
 		me.initToolTip();
 
@@ -391,12 +404,17 @@ helpers.extend(Chart.prototype, /** @lends Chart */ {
 		scaleService.addScalesToLayout(this);
 	},
 
+	// 图表中的某些元素，例如图例、表的主体等，是能够和用户操作的，相应用户的鼠标事件，因此它们需要单独初始化。
+	// 这些能够交互的东西称为controller。
 	buildOrUpdateControllers: function() {
 		var me = this;
 		var newControllers = [];
 
 		helpers.each(me.data.datasets, function(dataset, datasetIndex) {
+			// 在第一次调用时，下面的meta是一个未初始化的meta对象。
+			// 其中大部分值都被设置为了null，在以下代码中将逐步对其进行初始化。
 			var meta = me.getDatasetMeta(datasetIndex);
+			// type指的就是图表的类型，"bar"、"line"……
 			var type = dataset.type || me.config.type;
 
 			if (meta.type && meta.type !== type) {
@@ -409,7 +427,10 @@ helpers.extend(Chart.prototype, /** @lends Chart */ {
 				meta.controller.updateIndex(datasetIndex);
 				meta.controller.linkScales();
 			} else {
+				// controllers是从controllers/index.js中require进来的。
+				// 里面有预定义好的各种图表类型的controller。
 				var ControllerClass = controllers[meta.type];
+				// 未知图表类型。
 				if (ControllerClass === undefined) {
 					throw new Error('"' + meta.type + '" is not a chart type.');
 				}
@@ -615,6 +636,7 @@ helpers.extend(Chart.prototype, /** @lends Chart */ {
 
 			animations.addAnimation(me, animation, duration, lazy);
 		} else {
+			// 此处是没有动画的情况。
 			me.draw();
 
 			// See https://github.com/chartjs/Chart.js/issues/3781
@@ -627,6 +649,7 @@ helpers.extend(Chart.prototype, /** @lends Chart */ {
 	draw: function(easingValue) {
 		var me = this;
 
+		// 每一帧绘制之前，都要清空画布。
 		me.clear();
 
 		if (helpers.isNullOrUndef(easingValue)) {
@@ -644,10 +667,19 @@ helpers.extend(Chart.prototype, /** @lends Chart */ {
 		}
 
 		// Draw all the scales
+		// 下面首先绘制boxes。
+		// boxes，就是图表中一些固定不动的元素。
+		// 例如，标题、图例、坐标轴等。
+		// 经过探索，发现绘制一个普通的条形图：
+		// boxes[0]: 图例；
+		// boxes[1]: 标题；
+		// boxes[2]: 横坐标轴及其数据表示；
+		// boxes[3]: 纵坐标轴及其数据标识。
 		helpers.each(me.boxes, function(box) {
 			box.draw(me.chartArea);
 		}, me);
 
+		// 然后绘制数据的主题部分。
 		me.drawDatasets(easingValue);
 		me._drawTooltip(easingValue);
 

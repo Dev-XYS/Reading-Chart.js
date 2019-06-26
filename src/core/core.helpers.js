@@ -352,6 +352,9 @@ module.exports = function() {
 		return niceFraction * Math.pow(10, exponent);
 	};
 	// Request animation polyfill - https://www.paulirish.com/2011/requestanimationframe-for-smart-animating/
+	// requestAnimationFrame通常是浏览器内置的一个函数，作用大致是在1000/60毫秒后调用回调函数。
+	// 所以我们只需将绘制下一帧动画使用的函数传入该函数，再递归地调用即可。
+	// 由于各个浏览器此函数名略有差别，此helper提供了一个统一的接口。
 	helpers.requestAnimFrame = (function() {
 		if (typeof window === 'undefined') {
 			return function(callback) {

@@ -170,6 +170,9 @@ module.exports = {
 	}
 };
 
+// 以下代码，说明了plugin中可用的所有事件。
+// 在代码主体部分，四处充斥着对这些事件的调用。
+
 /**
  * Plugin extension hooks.
  * @interface IPlugin

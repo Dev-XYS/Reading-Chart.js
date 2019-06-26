@@ -64,6 +64,7 @@
   },
   "dependencies": {
     "chartjs-color": "^2.1.0",
+    "gulp-cli": "^2.2.0",
     "moment": "^2.10.2"
   }
 }

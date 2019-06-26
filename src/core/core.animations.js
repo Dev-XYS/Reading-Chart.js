@@ -61,6 +61,8 @@ module.exports = {
 		}
 	},
 
+	// 为了方便递归调用，要将requestAnimationFrame包装成一个单独的函数。
+	// 一个动画首次调用这个函数，也就预示着动画的开始，无需调用其他函数动画就会自己进行。
 	requestAnimationFrame: function() {
 		var me = this;
 		if (me.request === null) {
@@ -77,6 +79,8 @@ module.exports = {
 	/**
 	 * @private
 	 */
+	// 不知道这个函数为什么要起startDigest这样的名字。
+	// 本函数的主要作用是绘制动画的下一帧，然后递归调用requestAnimationFrame开始下一帧的计时。
 	startDigest: function() {
 		var me = this;
 
@@ -91,6 +95,7 @@ module.exports = {
 	/**
 	 * @private
 	 */
+	// 函数作用：绘制动画的一帧。
 	advance: function() {
 		var animations = this.animations;
 		var animation, chart, numSteps, nextStep;
@@ -104,6 +109,7 @@ module.exports = {
 
 			// Make sure that currentStep starts at 1
 			// https://github.com/chartjs/Chart.js/issues/6104
+			// setTimeout不能保证动画每帧绘制的时间间隔，因此用Date.now()确定当前时间，保证动画的总时间不变。
 			nextStep = Math.floor((Date.now() - animation.startTime) / animation.duration * numSteps) + 1;
 			animation.currentStep = Math.min(nextStep, numSteps);
 

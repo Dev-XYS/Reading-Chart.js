@@ -45,7 +45,7 @@ module.exports = [
 			'moment'
 		]
 	},
-	{
+/*	{
 		input: input,
 		plugins: [
 			resolve(),
@@ -115,5 +115,5 @@ module.exports = [
 			format: 'umd',
 			indent: false
 		}
-	}
+	}*/
 ];

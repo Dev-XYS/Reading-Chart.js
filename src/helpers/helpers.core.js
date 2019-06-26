@@ -111,6 +111,9 @@ var helpers = {
 	 * @param {object} [thisArg] - The value of `this` provided for the call to `fn`.
 	 * @param {boolean} [reverse] - If true, iterates backward on the loopable.
 	 */
+	// 函数作用：用loopable中每一对key和value调用函数fn。
+	// 如果loopable是数组，则只调用数组下标0...length-1；
+	// 如果loopable是Object，则调用所有enumerable的下标为string的属性。
 	each: function(loopable, fn, thisArg, reverse) {
 		var i, len, keys;
 		if (helpers.isArray(loopable)) {
@@ -275,6 +278,7 @@ var helpers = {
 	 * @param {object} argN - Additional objects containing properties to merge in target.
 	 * @returns {object} The `target` object.
 	 */
+	// 函数作用：使用若干个loopable（见helpers.each）中的属性扩展target。
 	extend: function(target) {
 		var setFn = function(value, key) {
 			target[key] = value;
